@@ -42,7 +42,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateUser(Long userId, UserDto userDto) {
+    public UserDto updateUser(Long userId, UserDto userDto) {
 
         User user = users.get(userId);
 
@@ -60,6 +60,7 @@ public class UserServiceImpl implements UserService {
             }
             user.setEmail(userDto.getEmail());
         }
+        return userMapper.convertToDto(user);
     }
 
     @Override

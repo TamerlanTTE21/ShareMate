@@ -3,6 +3,7 @@ package com.sharemate.item;
 import com.sharemate.exception.ItemNotFoundException;
 import com.sharemate.exception.NotOwnerException;
 import com.sharemate.exception.ValidationException;
+import com.sharemate.user.UserMapper;
 import com.sharemate.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +41,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public void updateItem(Long itemId, ItemDto itemDto, Long userId) {
+    public ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId) {
         Item item = items.get(itemId);
 
         if (item == null) {
@@ -60,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
-
+        return itemMapper.convertToDto(item);
     }
 
     @Override
