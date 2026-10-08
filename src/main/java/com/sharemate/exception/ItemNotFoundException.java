@@ -1,4 +1,4 @@
-package com.sharemate.item;
+package com.sharemate.exception;
 
 public class ItemNotFoundException  extends  RuntimeException {
     public ItemNotFoundException(String message) {

@@ -1,4 +1,4 @@
-package com.sharemate.item;
+package com.sharemate.exception;
 
 public class ValidationException extends RuntimeException {
     public ValidationException(String message) {

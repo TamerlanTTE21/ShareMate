@@ -1,22 +1,29 @@
 package com.sharemate.item;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.sharemate.exception.ItemNotFoundException;
+import com.sharemate.exception.NotOwnerException;
+import com.sharemate.exception.ValidationException;
+import com.sharemate.user.UserService;
+import org.springframework.stereotype.Service;
 
+import java.util.*;
+
+@Service
 public class ItemServiceImpl implements ItemService {
-    private ItemMapper itemMapper;
-    private Map<Long, Item> items;
+    private final ItemMapper itemMapper;
+    private final UserService userService;
+    private final Map<Long, Item> items;
     private Long nextId = 1L;
 
-    public ItemServiceImpl() {
-        itemMapper = new ItemMapper();
-        items = new HashMap<>();
+    public ItemServiceImpl(ItemMapper itemMapper, UserService userService) {
+        this.itemMapper = itemMapper;
+        this.userService = userService;
+        this.items = new LinkedHashMap<>();
     }
 
     @Override
     public ItemDto addItem(ItemDto itemDto, Long userId) {
+        userService.getUser(userId);
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
             throw new ValidationException("Имя не может быть пустым");
         }
@@ -79,6 +86,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> searchItems(String text) {
+        if (text == null || text.isBlank()) {
+            return new ArrayList<>();
+        }
         List<ItemDto> result = new ArrayList<>();
         String lowerText = text.toLowerCase();
 

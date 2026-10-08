@@ -1,4 +1,4 @@
-package com.sharemate.user;
+package com.sharemate.exception;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException (String message) {

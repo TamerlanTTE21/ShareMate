@@ -7,10 +7,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/items")
 public class ItemController {
-    private ItemService itemService;
+    private final ItemService itemService;
 
-    public ItemController() {
-        itemService = new ItemServiceImpl();
+    public ItemController(ItemService itemService) {
+        this.itemService = itemService;
     }
 
     @PostMapping
