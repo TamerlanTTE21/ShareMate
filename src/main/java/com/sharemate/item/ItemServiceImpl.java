@@ -3,7 +3,6 @@ package com.sharemate.item;
 import com.sharemate.exception.ItemNotFoundException;
 import com.sharemate.exception.NotOwnerException;
 import com.sharemate.exception.ValidationException;
-import com.sharemate.user.UserMapper;
 import com.sharemate.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +12,12 @@ import java.util.*;
 public class ItemServiceImpl implements ItemService {
     private final ItemMapper itemMapper;
     private final UserService userService;
-    private final Map<Long, Item> items;
-    private Long nextId = 1L;
+    private final ItemRepository itemRepository;
 
-    public ItemServiceImpl(ItemMapper itemMapper, UserService userService) {
+    public ItemServiceImpl(ItemMapper itemMapper, UserService userService, ItemRepository itemRepository) {
         this.itemMapper = itemMapper;
         this.userService = userService;
-        this.items = new LinkedHashMap<>();
+        this.itemRepository = itemRepository;
     }
 
     @Override
@@ -34,19 +32,16 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() == null) {
             throw new ValidationException("Доступность не может быть пустым");
         }
-        Item item = new Item(nextId, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), userId);
-        items.put(item.getId(), item);
-        nextId++;
-        return itemMapper.convertToDto(item);
+        Item item = new Item(null, itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), userId, null);
+        Item savedItem = itemRepository.save(item);
+        return itemMapper.convertToDto(savedItem);
     }
 
     @Override
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId) {
-        Item item = items.get(itemId);
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException("Вещь с id " + itemId + " не найдена"));
 
-        if (item == null) {
-            throw new ItemNotFoundException("Вещь с id " + itemId + " не найдена");
-        }
         if (!item.getOwner().equals(userId)) {
             throw new NotOwnerException("Нет владельца");
         }
@@ -61,26 +56,26 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             item.setAvailable(itemDto.getAvailable());
         }
-        return itemMapper.convertToDto(item);
+        Item savedItem = itemRepository.save(item);
+        return itemMapper.convertToDto(savedItem);
     }
 
     @Override
     public ItemDto getItem(Long itemId) {
-        Item item = items.get(itemId);
-        if (item == null) {
-            throw new ItemNotFoundException("Вещь с id " + itemId + " не найдена");
-        }
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ItemNotFoundException("Вещь с id " + itemId + " не найдена"));
+
         return itemMapper.convertToDto(item);
     }
 
     @Override
     public List<ItemDto> getAllItemsByOwner(Long userId) {
+        List<Item> items = itemRepository.findByOwner(userId);
+
         List<ItemDto> result = new ArrayList<>();
 
-        for (Item item : items.values()) {
-            if (item.getOwner().equals(userId)) {
-                result.add(itemMapper.convertToDto(item));
-            }
+        for (Item item : items) {
+            result.add(itemMapper.convertToDto(item));
         }
         return result;
     }
@@ -91,13 +86,11 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
         List<ItemDto> result = new ArrayList<>();
-        String lowerText = text.toLowerCase();
 
-        for (Item item : items.values()) {
-            boolean nameMatches = item.getName().toLowerCase().contains(lowerText);
-            boolean descriptionMatches = item.getDescription().toLowerCase().contains(lowerText);
+        List<Item> items = itemRepository.search(text);
 
-            if ((nameMatches || descriptionMatches) && item.isAvailable()) {
+        for (Item item : items) {
+            if (item.isAvailable()) {
                 result.add(itemMapper.convertToDto(item));
             }
         }

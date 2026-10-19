@@ -10,12 +10,11 @@ import java.util.*;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
-    private final Map<Long, User> users;
-    private Long nextId = 1L;
+    private final UserRepository userRepository;
 
-    public UserServiceImpl(UserMapper userMapper) {
+    public UserServiceImpl(UserMapper userMapper, UserRepository userRepository) {
         this.userMapper = userMapper;
-        this.users = new LinkedHashMap<>();
+        this.userRepository = userRepository;
     }
 
 
@@ -34,21 +33,16 @@ public class UserServiceImpl implements UserService {
         if (emailExists(userDto.getEmail(), null)) {
             throw new DuplicateEmailException("Пользователь с таким email уже существует");
         }
-        User user = new User(nextId, userDto.getName(), userDto.getEmail());
-        users.put(user.getId(), user);
-        nextId++;
-        return userMapper.convertToDto(user);
-
+        User user = new User(null, userDto.getName(), userDto.getEmail());
+        User savedUser = userRepository.save(user);
+        return userMapper.convertToDto(savedUser);
     }
 
     @Override
     public UserDto updateUser(Long userId, UserDto userDto) {
 
-        User user = users.get(userId);
-
-        if (user == null) {
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
 
         if (userDto.getName() != null) {
             user.setName(userDto.getName());
@@ -60,22 +54,25 @@ public class UserServiceImpl implements UserService {
             }
             user.setEmail(userDto.getEmail());
         }
-        return userMapper.convertToDto(user);
+        User savedUser = userRepository.save(user);
+        return userMapper.convertToDto(savedUser);
     }
 
     @Override
     public UserDto getUser(Long userId) {
-        User user = users.get(userId);
-        if (user == null) {
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
+
         return userMapper.convertToDto(user);
     }
 
     @Override
     public List<UserDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+
         List<UserDto> result = new ArrayList<>();
-        for (User user : users.values()) {
+
+        for (User user : users) {
             result.add(userMapper.convertToDto(user));
         }
         return result;
@@ -83,16 +80,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long userId) {
-        users.remove(userId);
-
+        userRepository.deleteById(userId);
     }
 
     private boolean emailExists(String email, Long excludeUserId) {
-        for (User user : users.values()) {
-            if (user.getEmail().equals(email) && !user.getId().equals(excludeUserId)) {
-                return true;
-            }
+        Optional<User> existingUser = userRepository.findByEmail(email);
+        if (existingUser.isEmpty()) {
+            return false;
         }
-        return false;
+        return !existingUser.get().getId().equals(excludeUserId);
     }
 }

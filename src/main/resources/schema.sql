@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS users
+(
+    id    SERIAL PRIMARY KEY,
+    name  VARCHAR(255) NOT NULL,
+    email VARCHAR(512) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS items
+(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    is_available BOOLEAN NOT NULL,
+    owner_id BIGINT REFERENCES users(id) NOT NULL,
+    request_id BIGINT
+);
