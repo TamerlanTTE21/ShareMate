@@ -37,4 +37,8 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler(BookingNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleBookingNotFoundException(BookingNotFoundException e) { return new ErrorResponse(e.getMessage());}
+
 }

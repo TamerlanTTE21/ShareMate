@@ -19,8 +19,9 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItem(@PathVariable Long itemId) {
-        return itemService.getItem(itemId);
+    public ItemDetailsDto getItem(@PathVariable Long itemId,
+                                  @RequestHeader("X-Sharer-User-Id") Long userId) {
+        return itemService.getItem(itemId, userId);
     }
 
     @PatchMapping("/{itemId}")
@@ -29,7 +30,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDto> getAllItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public List<ItemWithBookingsDto> getAllItems(@RequestHeader("X-Sharer-User-Id") Long userId) {
         return itemService.getAllItemsByOwner(userId);
     }
 
@@ -38,4 +39,10 @@ public class ItemController {
         return itemService.searchItems(text);
     }
 
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(@PathVariable Long itemId,
+                                 @RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestBody CommentCreateDto commentCreateDto) {
+        return itemService.addComment(itemId, userId, commentCreateDto);
+    }
 }

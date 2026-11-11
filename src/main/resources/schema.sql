@@ -14,3 +14,22 @@ CREATE TABLE IF NOT EXISTS items
     owner_id BIGINT REFERENCES users(id) NOT NULL,
     request_id BIGINT
 );
+
+CREATE TABLE IF NOT EXISTS bookings
+(
+    id SERIAL PRIMARY KEY,
+    start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    end_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    item_id BIGINT REFERENCES items(id) NOT NULL,
+    booker_id BIGINT REFERENCES users(id) NOT NULL,
+    status VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comments
+(
+    id SERIAL PRIMARY KEY,
+    text VARCHAR(1000) NOT NULL,
+    item_id BIGINT REFERENCES items (id) NOT NULL,
+    author_id BIGINT REFERENCES users (id) NOT NULL,
+    created TIMESTAMP WITHOUT TIME ZONE NOT NULL
+ );
