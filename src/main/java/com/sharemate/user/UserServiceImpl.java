@@ -24,16 +24,14 @@ public class UserServiceImpl implements UserService {
         if (userDto.getName() == null || userDto.getName().isBlank()) {
             throw new ValidationException("Имя не может быть пустым");
         }
-        if (userDto.getEmail() == null || userDto.getEmail().isBlank()) {
-            throw new ValidationException("Почта не может быть пустым");
+        if (userDto.getEmail() == null) {
+            throw new ValidationException("Почта не может быть пустой");
         }
-        if (!userDto.getEmail().contains("@")) {
-            throw new ValidationException("Некорректный формат email");
-        }
-        if (emailExists(userDto.getEmail(), null)) {
+        validateEmail(userDto.getEmail());
+        if (emailExists(userDto.getEmail())) {
             throw new DuplicateEmailException("Пользователь с таким email уже существует");
         }
-        User user = new User(null, userDto.getName(), userDto.getEmail());
+        User user = new User(userDto.getName(), userDto.getEmail());
         User savedUser = userRepository.save(user);
         return userMapper.convertToDto(savedUser);
     }
@@ -45,10 +43,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
 
         if (userDto.getName() != null) {
+            if (userDto.getName().isBlank()) {
+                throw new ValidationException("Имя не может быть пустым");
+            }
             user.setName(userDto.getName());
         }
-
         if (userDto.getEmail() != null) {
+            validateEmail(userDto.getEmail());
             if (emailExists(userDto.getEmail(), userId)) {
                 throw new DuplicateEmailException("Пользователь с таким email уже существует");
             }
@@ -81,6 +82,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
+    }
+
+    private void validateEmail(String email) {
+        if (email.isBlank()) {
+            throw new ValidationException("Почта не может быть пустым");
+        }
+        if (!email.contains("@")) {
+            throw new ValidationException("Некорректный формат email");
+        }
+    }
+
+    private boolean emailExists(String email) {
+        return emailExists(email, null);
     }
 
     private boolean emailExists(String email, Long excludeUserId) {

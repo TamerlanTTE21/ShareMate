@@ -1,14 +1,14 @@
 package com.sharemate.item;
 
+import com.sharemate.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 @Entity
 @Table(name = "items")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Item {
@@ -17,10 +17,21 @@ public class Item {
     private Long id;
     private String name;
     private String description;
+
     @Column(name = "is_available")
-    private boolean available;
-    @Column(name = "owner_id")
-    private Long owner;
+    private Boolean available;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner;
+
     @Column(name = "request_id")
     private Long request;
+
+    public Item(String name, String description, Boolean available, User owner) {
+        this.name = name;
+        this.description = description;
+        this.available = available;
+        this.owner = owner;
+    }
 }

@@ -9,7 +9,7 @@ public interface ItemService {
 
     ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId);
 
-    List<ItemWithBookingsDto> getAllItemsByOwner(Long userId);
+    List<ItemDetailsDto> getAllItemsByOwner(Long userId);
 
     List<ItemDto> searchItems(String text);
 

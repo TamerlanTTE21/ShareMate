@@ -3,16 +3,15 @@ package com.sharemate.booking;
 import com.sharemate.item.Item;
 import com.sharemate.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bookings")
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Booking {
@@ -36,4 +35,12 @@ public class Booking {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status;
+
+    public Booking(Item item, User booker, LocalDateTime start, LocalDateTime end, BookingStatus status) {
+        this.item = item;
+        this.booker = booker;
+        this.start = start;
+        this.end = end;
+        this.status = status;
+    }
 }
