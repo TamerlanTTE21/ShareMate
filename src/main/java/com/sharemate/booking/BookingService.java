@@ -9,6 +9,7 @@ public interface BookingService {
 
     BookingDto getBooking(Long bookingId, Long userId);
 
-    List<BookingDto> getUserBookings(Long userId, BookingState state);
+    List<BookingDto> getUserBookings(Long userId, BookingState state, int from, int size);
 
-    List<BookingDto> getOwnerBookings(Long userId, BookingState state);}
+    List<BookingDto> getOwnerBookings(Long userId, BookingState state, int from, int size);
+}

@@ -15,7 +15,8 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto addItem(@RequestBody ItemDto itemDto, @RequestHeader(Headers.HEADER_ID) Long userId) {
+    public ItemDto addItem(@RequestBody ItemDto itemDto,
+                           @RequestHeader(Headers.HEADER_ID) Long userId) {
         return itemService.addItem(itemDto, userId);
     }
 
@@ -31,13 +32,17 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDetailsDto> getAllItems(@RequestHeader(Headers.HEADER_ID) Long userId) {
-        return itemService.getAllItemsByOwner(userId);
+    public List<ItemDetailsDto> getAllItems(@RequestHeader(Headers.HEADER_ID) Long userId,
+                                            @RequestParam(defaultValue = "0") int from,
+                                            @RequestParam(defaultValue = "10") int size) {
+        return itemService.getAllItemsByOwner(userId, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> searchItems(@RequestParam String text) {
-        return itemService.searchItems(text);
+    public List<ItemDto> searchItems(@RequestParam String text,
+                                     @RequestParam(defaultValue = "0") int from,
+                                     @RequestParam(defaultValue = "10") int size) {
+        return itemService.searchItems(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

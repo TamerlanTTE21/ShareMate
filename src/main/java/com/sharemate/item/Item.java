@@ -28,10 +28,11 @@ public class Item {
     @Column(name = "request_id")
     private Long request;
 
-    public Item(String name, String description, Boolean available, User owner) {
+    public Item(String name, String description, Boolean available, User owner, Long request) {
         this.name = name;
         this.description = description;
         this.available = available;
         this.owner = owner;
+        this.request = request;
     }
 }

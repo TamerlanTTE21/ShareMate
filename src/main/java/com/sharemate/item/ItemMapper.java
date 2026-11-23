@@ -5,6 +5,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ItemMapper {
     public ItemDto convertToDto(Item item) {
-        return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable());
+        return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable(), item.getRequest());
     }
 }

@@ -3,12 +3,13 @@ package com.sharemate.item;
 import com.sharemate.booking.Booking;
 import com.sharemate.booking.BookingRepository;
 import com.sharemate.booking.BookingStatus;
-import com.sharemate.exception.ItemNotFoundException;
-import com.sharemate.exception.NotOwnerException;
-import com.sharemate.exception.UserNotFoundException;
-import com.sharemate.exception.ValidationException;
+import com.sharemate.exception.*;
+import com.sharemate.request.ItemRequestRepository;
 import com.sharemate.user.User;
 import com.sharemate.user.UserRepository;
+import com.sharemate.util.Pagination;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,14 +23,16 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
-    public ItemServiceImpl(ItemMapper itemMapper, ItemRepository itemRepository, BookingRepository bookingRepository, CommentRepository commentRepository, CommentMapper commentMapper, UserRepository userRepository) {
+    public ItemServiceImpl(ItemMapper itemMapper, ItemRepository itemRepository, BookingRepository bookingRepository, CommentRepository commentRepository, CommentMapper commentMapper, UserRepository userRepository, ItemRequestRepository itemRequestRepository) {
         this.itemMapper = itemMapper;
         this.itemRepository = itemRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
         this.commentMapper = commentMapper;
         this.userRepository = userRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Override
@@ -43,9 +46,12 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() == null) {
             throw new ValidationException("Доступность не может быть пустым");
         }
+        if (itemDto.getRequestId() != null && !itemRequestRepository.existsById(itemDto.getRequestId())) {
+            throw new ItemRequestNotFoundException("Запрос с id " + itemDto.getRequestId() + " не найден");
+        }
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
-        Item item = new Item(itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), owner);
+        Item item = new Item(itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable(), owner, itemDto.getRequestId());
         Item savedItem = itemRepository.save(item);
         return itemMapper.convertToDto(savedItem);
     }
@@ -98,8 +104,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDetailsDto> getAllItemsByOwner(Long userId) {
-        List<Item> items = itemRepository.findByOwner_Id(userId);
+    public List<ItemDetailsDto> getAllItemsByOwner(Long userId, int from, int size) {
+        Pageable pageable = Pagination.of(from, size);
+        List<Item> items = itemRepository.findByOwner_IdOrderByIdAsc(userId, pageable);
         List<ItemDetailsDto> result = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
@@ -124,11 +131,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItems(String text) {
+    public List<ItemDto> searchItems(String text, int from, int size) {
         if (text == null || text.isBlank()) {
             return new ArrayList<>();
         }
-        List<Item> items = itemRepository.search(text);
+        Pageable pageable = Pagination.of(from, size);
+        List<Item> items = itemRepository.search(text, pageable);
         List<ItemDto> result = new ArrayList<>();
         for (Item item : items) {
             result.add(itemMapper.convertToDto(item));

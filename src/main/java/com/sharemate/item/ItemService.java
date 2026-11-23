@@ -9,9 +9,9 @@ public interface ItemService {
 
     ItemDto updateItem(Long itemId, ItemDto itemDto, Long userId);
 
-    List<ItemDetailsDto> getAllItemsByOwner(Long userId);
+    List<ItemDetailsDto> getAllItemsByOwner(Long userId, int from, int size);
 
-    List<ItemDto> searchItems(String text);
+    List<ItemDto> searchItems(String text, int from, int size);
 
     CommentDto addComment(Long itemId, Long userId, CommentCreateDto commentCreateDto);
 }

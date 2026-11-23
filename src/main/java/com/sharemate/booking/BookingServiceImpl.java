@@ -5,6 +5,8 @@ import com.sharemate.item.Item;
 import com.sharemate.item.ItemRepository;
 import com.sharemate.user.User;
 import com.sharemate.user.UserRepository;
+import com.sharemate.util.Pagination;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -87,21 +89,22 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingDto> getUserBookings(Long userId, BookingState state) {
+    public List<BookingDto> getUserBookings(Long userId, BookingState state, int  from, int size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
+        Pageable pageable = Pagination.of(from, size);
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
         switch (state) {
-            case ALL -> bookings = bookingRepository.findByBooker_IdOrderByStartDesc(userId);
-            case PAST -> bookings = bookingRepository.findByBooker_IdAndEndIsBeforeOrderByStartDesc(userId, now);
-            case FUTURE -> bookings = bookingRepository.findByBooker_IdAndStartIsAfterOrderByStartDesc(userId, now);
+            case ALL -> bookings = bookingRepository.findByBooker_IdOrderByStartDesc(userId, pageable);
+            case PAST -> bookings = bookingRepository.findByBooker_IdAndEndIsBeforeOrderByStartDesc(userId, now, pageable);
+            case FUTURE -> bookings = bookingRepository.findByBooker_IdAndStartIsAfterOrderByStartDesc(userId, now, pageable);
             case CURRENT ->
-                    bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfterOrderByStartDesc(userId, now, now);
+                    bookings = bookingRepository.findByBooker_IdAndStartIsBeforeAndEndIsAfterOrderByStartDesc(userId, now, now, pageable);
             case WAITING ->
-                    bookings = bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+                    bookings = bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING, pageable);
             case REJECTED ->
-                    bookings = bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+                    bookings = bookingRepository.findByBooker_IdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED, pageable);
             default -> throw new ValidationException("Неизвестный state");
         }
         List<BookingDto> results = new ArrayList<>();
@@ -113,18 +116,19 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public List<BookingDto> getOwnerBookings(Long userId, BookingState state) {
+    public List<BookingDto> getOwnerBookings(Long userId, BookingState state, int from, int size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с id " + userId + " не найден"));
+        Pageable pageable = Pagination.of(from, size);
         LocalDateTime now = LocalDateTime.now();
         List<Booking> bookings;
         switch (state) {
-            case ALL -> bookings = bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId);
-            case PAST -> bookings =  bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, now);
-            case FUTURE -> bookings =  bookingRepository.findByItem_Owner_IdAndStartIsAfterOrderByStartDesc(userId, now);
-            case CURRENT -> bookings =  bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfterOrderByStartDesc(userId, now, now);
-            case WAITING -> bookings =  bookingRepository.findByItem_Owner_IdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case REJECTED -> bookings = bookingRepository.findByItem_Owner_IdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+            case ALL -> bookings = bookingRepository.findByItem_Owner_IdOrderByStartDesc(userId, pageable);
+            case PAST -> bookings =  bookingRepository.findByItem_Owner_IdAndEndIsBeforeOrderByStartDesc(userId, now, pageable);
+            case FUTURE -> bookings =  bookingRepository.findByItem_Owner_IdAndStartIsAfterOrderByStartDesc(userId, now, pageable);
+            case CURRENT -> bookings =  bookingRepository.findByItem_Owner_IdAndStartIsBeforeAndEndIsAfterOrderByStartDesc(userId, now, now, pageable);
+            case WAITING -> bookings =  bookingRepository.findByItem_Owner_IdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING, pageable);
+            case REJECTED -> bookings = bookingRepository.findByItem_Owner_IdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED, pageable);
             default -> throw new ValidationException("Неизвестный state");
         }
         List<BookingDto> results = new ArrayList<>();
